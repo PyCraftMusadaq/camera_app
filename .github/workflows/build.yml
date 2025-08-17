@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -23,22 +23,31 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y openjdk-11-jdk build-essential git unzip wget
         sudo apt-get install -y libffi-dev libssl-dev zlib1g-dev libbz2-dev
+        sudo apt-get install -y libreadline-dev libsqlite3-dev curl llvm
+        sudo apt-get install -y libncurses5-dev libncursesw5-dev xz-utils tk-dev
     
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install kivy==2.1.0 buildozer cython pillow plyer
+        pip install requests urllib3 chardet certifi idna
     
     - name: Set Java environment
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     
     - name: Build APK
       run: |
         buildozer android debug
     
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: camera-app-apk
         path: bin/*.apk
+        
+    - name: List generated files
+      run: |
+        echo "Generated files:"
+        ls -la bin/
