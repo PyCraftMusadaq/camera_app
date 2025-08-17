@@ -13,58 +13,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
     
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-    
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: 33
-        build-tools: 33.0.2
-        ndk-version: 25.2.9519653
-    
-    - name: Install system dependencies
+    - name: Build APK with Buildozer Docker
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential git unzip wget
-        sudo apt-get install -y libffi-dev libssl-dev zlib1g-dev libbz2-dev
-        sudo apt-get install -y libreadline-dev libsqlite3-dev curl llvm
-        sudo apt-get install -y libncurses5-dev libncursesw5-dev xz-utils tk-dev
-        sudo apt-get install -y libbz2-dev libsqlite3-dev libssl-dev
-    
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install kivy==2.1.0 buildozer cython pillow plyer
-        pip install requests urllib3 chardet certifi idna
-    
-    - name: Set environment variables
-      run: |
-        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_ENV
-    
-    - name: Accept Android SDK licenses
-      run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-    
-    - name: Install additional Android SDK components
-      run: |
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.2.9519653"
-    
-    - name: Build APK
-      run: |
+        docker run --rm -v "$(pwd)":/home/user/hostcwd kivy/buildozer:latest /bin/bash -c "
+        cd /home/user/hostcwd && 
         buildozer android debug
+        "
     
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
