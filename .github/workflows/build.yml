@@ -13,23 +13,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Build APK with Buildozer Docker
+    - name: Build APK with Buildozer
       run: |
-        docker run --rm -v "$(pwd)":/home/user/hostcwd kivy/buildozer:latest /bin/bash -c "
-        cd /home/user/hostcwd && 
-        buildozer android debug
-        "
+        docker run --rm \
+          -v ${{ github.workspace }}:/home/user/hostcwd \
+          --workdir /home/user/hostcwd \
+          kivy/buildozer:latest \
+          buildozer android debug
+    
+    - name: List generated files
+      run: |
+        echo "Generated files:"
+        ls -la bin/ || echo "No bin directory found"
+        find . -name "*.apk" -type f || echo "No APK files found"
     
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: camera-app-apk
         path: bin/*.apk
-        
-    - name: List generated files
-      run: |
-        echo "Generated files:"
-        ls -la bin/ || echo "No bin directory found"
+      if: success()
